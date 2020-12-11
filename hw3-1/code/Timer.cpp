@@ -1,6 +1,6 @@
 #include"Timer.h"
 
-//¼ÆÊ±Æ÷³õÊ¼»¯
+//è®¡æ—¶å™¨åˆå§‹åŒ–
 Timer::Timer()
 {
     timeout = 0;
@@ -8,39 +8,39 @@ Timer::Timer()
     isStart = false;
 }
 
-//¼ÆÊ±Æ÷¿ªÊ¼¼ÆÊ±
+//è®¡æ—¶å™¨å¼€å§‹è®¡æ—¶
 void Timer::startTimer()
 {
     isStart = true;
     setTimer();
 }
 
-//µÃµ½µ±Ç°clickÊı
+//å¾—åˆ°å½“å‰clickæ•°
 void Timer::setTimer()
 {
     QueryPerformanceCounter(&timer_start);
 }
 
-//¼ÆÊ±Æ÷Í£Ö¹¼ÆÊ±
+//è®¡æ—¶å™¨åœæ­¢è®¡æ—¶
 void Timer::stopTimer()
 {
     isStart = false;
 }
 
-//µÃµ½Ê±¼ä²î
+//å¾—åˆ°æ—¶é—´å·®
 double Timer::getDiff()
 {
     QueryPerformanceCounter(&timer_end);
     return ((timer_end.QuadPart - timer_start.QuadPart) * 1000.0 / f.QuadPart);
 }
 
-//¼ì²âÊÇ·ñ³¬Ê±
+//æ£€æµ‹æ˜¯å¦è¶…æ—¶
 bool Timer::testTimeOut()
 {
     return getDiff() > timeout;
 }
 
-//ÉèÖÃ³¬Ê±Ê±¼ä
+//è®¾ç½®è¶…æ—¶æ—¶é—´
 void Timer::setTimeOut(double time)
 {
     timeout = time;
