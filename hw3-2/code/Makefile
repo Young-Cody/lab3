@@ -1,27 +1,27 @@
-.PHONY:clean rs rr
+.PHONY:clean
 
-timer:Timer.cpp
+timer.obj:Timer.cpp
 	g++ -c Timer.cpp -o timer.obj -fexec-charset=gbk
 
-rdt:rdt.cpp
+rdt.obj:rdt.cpp
 	g++ -c rdt.cpp -o rdt.obj -fexec-charset=gbk
 
-connection:connection.cpp
+connection.obj:connection.cpp
 	g++ -c connection.cpp -o connection.obj -fexec-charset=gbk
 
-packet:packet.cpp
+packet.obj:packet.cpp
 	g++ -c packet.cpp -o packet.obj -fexec-charset=gbk
 
-rbuf:rbuf.cpp
+rbuf.obj:rbuf.cpp
 	g++ -c rbuf.cpp -o rbuf.obj -fexec-charset=gbk
 
-sbuf:sbuf.cpp
+sbuf.obj:sbuf.cpp
 	g++ -c sbuf.cpp -o sbuf.obj -fexec-charset=gbk	
 
-sender:rdt timer connection packet rbuf sbuf
+sender:rdt.obj timer.obj connection.obj packet.obj rbuf.obj sbuf.obj
 	g++ $(shell ls *.obj) sender.cpp -o sender.exe -fexec-charset=gbk -l WS2_32 -static
 
-receiver:rdt timer connection packet rbuf sbuf
+receiver:rdt.obj timer.obj connection.obj packet.obj rbuf.obj sbuf.obj
 	g++ $(shell ls *.obj) receiver.cpp -o receiver.exe -fexec-charset=gbk -l WS2_32 -static
 
 rs:sender

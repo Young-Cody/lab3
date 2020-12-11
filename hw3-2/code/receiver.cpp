@@ -40,7 +40,7 @@ int initiate()
 
 	addrRcvr.sin_port = htons(port);
 	addrRcvr.sin_family = AF_INET;
-	inet_pton(AF_INET, IP.c_str(), &addrRcvr.sin_addr.S_un.S_addr);
+	addrRcvr.sin_addr.S_un.S_addr = inet_addr(IP.c_str());
 
     if(rdt::bind(sockRcvr, (sockaddr*)&addrRcvr) == -1) return -1;
 	if(rdt::listen(sockRcvr, 10) == -1) return -1;
@@ -88,7 +88,7 @@ void recvFiles()
     string dir;
 	//cout<<"请输入文件保存的位置:";
 	//cin >> dir;
-	dir = "C:\\Users\\94266\\Desktop\\course\\ComputerNetWorking\\work\\lab3\\hw3-2\\testrecv";
+	dir = "..\\testrecv";
 	for (int i = 0; i < num; i++)
 		recvFile(dir.c_str());
 }
@@ -106,8 +106,8 @@ int main()
 		cerr << "接收端初始化失败\n";
 		exit(-1);
 	}
-	connsock = NULL;
-	if ((connsock = rdt::accept(sockRcvr)) == NULL)
+	connsock = 0;
+	if ((connsock = rdt::accept(sockRcvr)) < 0)
 	{
 		cerr << "接受连接失败\n";
 		exit(-1);

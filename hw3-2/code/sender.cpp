@@ -34,7 +34,7 @@ int initiate()
 	//cin>>port;
 	IP = "127.0.0.1";
 	port = 3245;
-	inet_pton(AF_INET, IP.c_str(), &addrSender.sin_addr.S_un.S_addr);
+	addrSender.sin_addr.S_un.S_addr = inet_addr(IP.c_str());
 	addrSender.sin_family = AF_INET;
 	addrSender.sin_port = htons(port);
 	sockSender = socket(AF_INET, SOCK_DGRAM, 0);
@@ -49,7 +49,7 @@ int initiate()
 	sockaddr_in addrRcvr;
 	addrRcvr.sin_port = htons(port);
 	addrRcvr.sin_family = AF_INET;
-	inet_pton(AF_INET, IP.c_str(), &addrRcvr.sin_addr.S_un.S_addr);
+	addrRcvr.sin_addr.S_un.S_addr = inet_addr(IP.c_str());
 
 	cout << "请输入发送窗口大小:";
 	int N;
@@ -140,10 +140,10 @@ void sendFiles()
 	n = 4;
 	rdt::send(sockSender, (char*)&n, 4);
 	const char* test[4] = {
-		"C:\\Users\\94266\\Desktop\\course\\ComputerNetWorking\\work\\lab3\\hw3-2\\test\\1.jpg",
-		"C:\\Users\\94266\\Desktop\\course\\ComputerNetWorking\\work\\lab3\\hw3-2\\test\\2.jpg",
-		"C:\\Users\\94266\\Desktop\\course\\ComputerNetWorking\\work\\lab3\\hw3-2\\test\\3.jpg",
-		"C:\\Users\\94266\\Desktop\\course\\ComputerNetWorking\\work\\lab3\\hw3-2\\test\\helloworld.txt"
+		"..\\test\\1.jpg",
+		"..\\test\\2.jpg",
+		"..\\test\\3.jpg",
+		"..\\test\\helloworld.txt"
 	};
 	for (int i = 0; i < n; i++)
 	{

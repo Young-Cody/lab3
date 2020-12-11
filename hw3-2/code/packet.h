@@ -2,6 +2,7 @@
 #define PACKET
 
 #include<iostream>
+#include<string.h>
 using namespace std;
 
 #define MAXBUFSIZE 1024       //数据的最大长度

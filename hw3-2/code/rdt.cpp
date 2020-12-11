@@ -143,7 +143,7 @@ DWORD WINAPI recvThread(LPVOID p)
 {
     RBuf* rb = (RBuf*)p;
     while (rb->recv());
-    SOCKET s = NULL;
+    SOCKET s = 0;
     rb->getSocket(&s);
     delete rb;
     recvBuf.erase(s);
@@ -153,7 +153,7 @@ DWORD WINAPI recvThread(LPVOID p)
 //应用层接收连接
 SOCKET rdt::accept(SOCKET s)
 {
-    if(sock2addr.find(s) == sock2addr.end() ||consocks.find(s) == consocks.end()) return NULL;   //未开始监听或未绑定socket到本地地址
+    if(sock2addr.find(s) == sock2addr.end() ||consocks.find(s) == consocks.end()) return -1;   //未开始监听或未绑定socket到本地地址
     SOCKET consock = 0;
     consocks[s]->accept(&consock);  //从连接缓冲区中得到一条连接
     CreateThread(NULL, 0, recvThread, (LPVOID)recvBuf[consock], 0, NULL);   //创建接收缓冲区工作线程
