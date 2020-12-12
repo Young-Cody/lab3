@@ -108,6 +108,7 @@ void SBuf::ack()
     ReleaseSemaphore(mutex, 1, NULL);
 }
 
+//超时重传
 void SBuf::retrans()
 {
     WaitForSingleObject(mutex, INFINITE);

@@ -1,4 +1,4 @@
-.PHONY:sender receiver clean rs rr
+.PHONY:clean rs rr
 
 timer.obj:Timer.cpp
 	g++ -c Timer.cpp -o timer.obj -fexec-charset=gbk
