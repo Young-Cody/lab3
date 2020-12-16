@@ -107,7 +107,7 @@ void SBuf::retrans()
     if (timer->isStart && timer->testTimeOut())
     {
         flag = false;
-        // timer->setTimeOut(timer->timeout * 2);
+        timer->setTimeOut(timer->timeout * 2);
         timer->startTimer();
         for (unsigned int i = base; i < nextSeqnum; i++)        //定时器超时，重传[base, nextSeqnum)中的数据
         {
