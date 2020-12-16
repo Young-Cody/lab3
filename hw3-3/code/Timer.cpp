@@ -6,6 +6,7 @@ Timer::Timer()
     timeout = 0;
     QueryPerformanceFrequency(&f);
     isStart = false;
+    flag = true;
 }
 
 //计时器开始计时

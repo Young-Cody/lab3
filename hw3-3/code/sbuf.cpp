@@ -16,10 +16,9 @@ SBuf::SBuf(int n, SOCKET s, const sockaddr* addr)
     memset(buf, 0, sizeof(char*) * n * 2);
     istermi = false;
     rto.DevRTT = 0;
-    flag = false;
-    rto.EstimatedRTT = 10;
-    rto.rto = 10;
-    timer = new Timer();
+    rto.EstimatedRTT = 15;
+    rto.rto = 15;
+    timer = new Timer[this->n];
     N = n;
     base = nextSeqnum = nextWrite = 1;
     dupAckCnt = 0;
@@ -49,20 +48,17 @@ void SBuf::write(const char* buf, int len)
 void SBuf::send()
 {
     if (nextSeqnum < base + N && nextSeqnum < nextWrite)    //滑动窗口中还有可以发送的数据
-    {
-        if (base == nextSeqnum)                             //开始发送时，开启定时器
-        {
-            timer->setTimeOut(rto.rto);
-            timer->startTimer();
-            flag = true;
-        }
+    {                            
+        timer[nextSeqnum % n].setTimeOut(rto.rto);                         //开始发送时，开启定时器
+        timer[nextSeqnum % n].startTimer();
+        timer[nextSeqnum % n].flag = true;
         packet p;
         makePkt(&p, buf[nextSeqnum % n], len[nextSeqnum % n], nextSeqnum);
         sendto(s, (char*)&p, len[nextSeqnum % n] + sizeof(packet) - MAXBUFSIZE, 0, &addr, sizeof(sockaddr));
         nextSeqnum++;
     }
 }
-
+ 
 //接受ack数据报
 void SBuf::ack()
 {
@@ -74,24 +70,16 @@ void SBuf::ack()
     {
         if(p.ack >= base && p.ack < nextSeqnum)
         {
-            if (flag)
-            {
-                rto.addSampleRTT(timer->getDiff());         //加入一次RTT，估算下一次RTO
-                flag = false;
-            }
             for (unsigned int i = base; i<= p.ack; i++)
-                delete []buf[i % n];                        //删除被确认的数据
-            int num = p.ack - base + 1;
-            base = p.ack + 1;                               //base = ack + 1
-            if (base == nextSeqnum)                         //发送缓冲区为空，停止计时器
-                timer->stopTimer();
-            else
             {
-                timer->setTimeOut(rto.rto);
-                timer->startTimer();                        //发送缓冲区不为空，重启定时器
+                if (timer[i % n].flag && i % 5 == 0)
+                    rto.addSampleRTT(timer[i % n].getDiff());
+                timer[i % n].stopTimer();
+                delete []buf[i % n];            //删除被确认的数据
             }
+            base = p.ack + 1;                   //base = ack + 1
         }
-        else if(++dupAckCnt == 3)                           //三次重复ack，快速重传
+        else if(++dupAckCnt == 3)               //三次重复ack，快速重传
         {
             packet p;
             makePkt(&p, buf[base % n], len[base % n], base);
@@ -104,13 +92,13 @@ void SBuf::ack()
 //超时重传
 void SBuf::retrans()
 {
-    if (timer->isStart && timer->testTimeOut())
+    for (unsigned int i = base; i < nextSeqnum; i++)        //定时器超时，重传[base, nextSeqnum)中的数据
     {
-        flag = false;
-        timer->setTimeOut(timer->timeout * 2);
-        timer->startTimer();
-        for (unsigned int i = base; i < nextSeqnum; i++)        //定时器超时，重传[base, nextSeqnum)中的数据
+        if(timer[i % n].isStart && timer[i % n].testTimeOut())
         {
+            timer[i % n].setTimeOut(timer[i % n].timeout * 1.1);
+            timer[i % n].startTimer();
+            timer[i % n].flag = false;
             packet p;
             makePkt(&p, buf[i % n], len[i % n], i);
             sendto(s, (char*)&p, len[i % n] + sizeof(packet) - MAXBUFSIZE, 0, &addr, sizeof(sockaddr));

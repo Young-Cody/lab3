@@ -29,7 +29,6 @@ private:
     unsigned int base;                      //[base, nextSeqnum) 已发送未确认的数据报,长度小于滑动窗口的大小N
     unsigned int nextSeqnum;                //[nextSeqnum, nextWrite) 应用层写入缓冲区未发送的数据报
     unsigned int nextWrite;                 
-    bool flag;
     int dupAckCnt;                          //重复收到的ack                                      
     SOCKET s;                               //标识连接的socket
     sockaddr addr;                          //连接对方的地址

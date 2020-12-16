@@ -15,6 +15,7 @@ struct Timer{
     void setTimeOut(double);    //设置超时时间
     bool isStart;               //计时器是否开始
     double timeout;             //超时时间，单位ms
+    bool flag;                  //是否重传
     LARGE_INTEGER timer_start, timer_end, f;
 };
 
