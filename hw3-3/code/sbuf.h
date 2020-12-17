@@ -34,6 +34,10 @@ private:
     sockaddr addr;                          //连接对方的地址
     Timer *timer;                           //计时器
     RTO rto;                                //计算下一次RTO
+    int cwnd;                               //拥塞窗口
+    int state;                              //慢启动阶段:1 拥塞避免阶段:2 快速恢复阶段:3
+    int cnt;
+    int ssthresh;                           //拥塞阈值
 };
 
 
