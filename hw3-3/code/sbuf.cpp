@@ -16,8 +16,8 @@ SBuf::SBuf(int n, SOCKET s, const sockaddr* addr)
     memset(buf, 0, sizeof(char*) * n * 2);
     istermi = false;
     rto.DevRTT = 0;
-    rto.EstimatedRTT = 1000;
-    rto.rto = 1000;
+    rto.EstimatedRTT = 15;
+    rto.rto = 15;
     timer = new Timer[this->n];
     N = n;
     base = nextSeqnum = nextWrite = 1;
@@ -25,7 +25,7 @@ SBuf::SBuf(int n, SOCKET s, const sockaddr* addr)
     cwnd = 1;
     state = 1;
     cnt = 0;
-    ssthresh = 64;
+    ssthresh = 48;
 }
 
 SBuf::~SBuf()
@@ -52,12 +52,14 @@ void SBuf::write(const char* buf, int len)
 void SBuf::send()
 {
     if (nextSeqnum < base + N && nextSeqnum < nextWrite && nextSeqnum < base + cwnd)    //滑动窗口中还有可以发送的数据
-    {                            
+    {                 
         timer[nextSeqnum % n].setTimeOut(rto.rto);                         //开始发送时，开启定时器
         timer[nextSeqnum % n].startTimer();
         timer[nextSeqnum % n].flag = true;
         packet p;
+        char c;
         makePkt(&p, buf[nextSeqnum % n], len[nextSeqnum % n], nextSeqnum);
+        sendto(s, (char*)&c, 1, 0, &addr, sizeof(sockaddr));
         sendto(s, (char*)&p, len[nextSeqnum % n] + sizeof(packet) - MAXBUFSIZE, 0, &addr, sizeof(sockaddr));
         nextSeqnum++;
     }
@@ -86,8 +88,7 @@ void SBuf::ack()
             if(state == 1)                      //慢启动状态
             {
                 cwnd += num;                    //收到1个ack，拥塞窗口加1;
-                cout<<state<<" "<<cwnd<<'\n';
-                if(cwnd >= ssthresh)             //cwnd>ssthresh,进入拥塞避免阶段
+                if(cwnd >= ssthresh)             //cwnd>=ssthresh,进入拥塞避免阶段
                 {
                     cnt = 0;
                     state = 2;
@@ -96,17 +97,17 @@ void SBuf::ack()
             else if(state == 2)                 //拥塞避免阶段
             {
                 cnt += num;
-                if (cnt == cwnd)                //每收到cwnd个ack，cwnd加1
+                if (cnt >= cwnd)                //每收到cwnd个ack，cwnd加1
                 {
                     cwnd += 1;
                     cnt = 0;
-                    cout<<state<<" "<<cwnd<<'\n';
                 }
             }
             else if(state == 3)                 //快速恢复阶段
             {
-                state = 2;                      //进入拥塞避免阶段
-                cwnd = ssthresh;
+                                                //进入拥塞避免阶段
+                cwnd = max(ssthresh, 1);
+                state = 2;  
             }
             base = p.ack + 1;                   //base = ack + 1
         }
@@ -126,10 +127,7 @@ void SBuf::ack()
             }         
             }
             if(state == 3)
-            {
-                cout<<state<<" "<<cwnd<<'\n';
                 cwnd += 1;
-            }
         }
         
     }
@@ -145,7 +143,7 @@ void SBuf::retrans()
         {
             if(i == base)
                 flag = true;
-            timer[i % n].setTimeOut(timer[i % n].timeout * 1.1);
+            timer[i % n].setTimeOut(rto.rto);
             timer[i % n].startTimer();
             timer[i % n].flag = false;
             packet p;

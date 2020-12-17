@@ -33,7 +33,7 @@ int initiate()
 	//cout<<"请输入发送端端口号:";
 	//cin>>port;
 	IP = "127.0.0.1";
-	port = 3245;
+	port = 3000;
 	addrSender.sin_addr.S_un.S_addr = inet_addr(IP.c_str());
 	addrSender.sin_family = AF_INET;
 	addrSender.sin_port = htons(port);

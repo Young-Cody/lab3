@@ -46,12 +46,11 @@ bool RBuf::recv()
 	bool flag = true;
 	packet p;
 	sockaddr from = addr;
-	int fromlen = sizeof(sockaddr) ;
-	if(recvfrom(s, (char*)&p, sizeof(packet), 0, &from, &fromlen) < 0) return true;
+	int fromlen = sizeof(sockaddr);
+	int e = recvfrom(s, (char*)&p, sizeof(packet), 0, &from, &fromlen);
 	if (check(&p) && p.seq >= expected && !buf[(rear + p.seq - expected + 1) % n] && !isSyn(p.flag))	//数据报检验和正确
 	{
 		packet ackPkt;
-		
 		if (isFin(p.flag) && p.seq == expected)	//fin报文，接收缓冲区中的数据被读完后发送ack，关闭连接。
 		{
 			if (front == rear)

@@ -125,13 +125,6 @@ DWORD WINAPI listenThread(LPVOID s)
 int rdt::listen(SOCKET s, int backlog)
 {
     if (sock2addr.find(s) == sock2addr.end()) return -1;    //未绑定socket到本地地址
-    int timeout = 10;
-
-    //将recvfrom设置为非阻塞
-    if (setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout)) == -1) {
-        cerr << "setsockopt failed";
-        return -1;
-    }
     ConnectionBuf* cs = new ConnectionBuf(backlog);
     consocks[s] = cs;
     CreateThread(NULL, 0, listenThread, (LPVOID)s, 0, NULL);

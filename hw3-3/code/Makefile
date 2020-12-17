@@ -24,6 +24,12 @@ sender:rdt.obj timer.obj connection.obj packet.obj rbuf.obj sbuf.obj
 receiver:rdt.obj timer.obj connection.obj packet.obj rbuf.obj sbuf.obj
 	g++ $(shell ls *.obj) receiver.cpp -o receiver.exe -fexec-charset=gbk -l WS2_32 -static
 
+ds:
+	g++ -g rdt.cpp timer.cpp connection.cpp packet.cpp rbuf.cpp sbuf.cpp sender.cpp -o sender.exe -fexec-charset=gbk -l WS2_32 -static
+
+dr:
+	g++ -g rdt.cpp timer.cpp connection.cpp packet.cpp rbuf.cpp sbuf.cpp receiver.cpp -o receiver.exe -fexec-charset=gbk -l WS2_32 -static
+
 rs:sender
 	./sender.exe
 
