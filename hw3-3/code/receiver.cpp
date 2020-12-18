@@ -35,8 +35,8 @@ int initiate()
 	//cout<<"请输入接收端的端口号:";
 	//cin>>port;
 
-	string IP = "10.130.120.25";
-	unsigned short port = 1234;
+	string IP = "127.0.0.1";
+	unsigned short port = 2000;
 
 	addrRcvr.sin_port = htons(port);
 	addrRcvr.sin_family = AF_INET;
@@ -112,6 +112,7 @@ int main()
 		cerr << "接受连接失败\n";
 		exit(-1);
 	}
-    recvFiles();
+	for(int i = 0; i < 20; i++)
+    	recvFiles();
 	destroy();
 }

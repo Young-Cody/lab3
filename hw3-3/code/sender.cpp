@@ -3,6 +3,9 @@
 
 SOCKET sockSender;
 SOCKADDR_IN addrSender;
+double trans,tt;
+double avg[4];
+double a[4];
 
 //发送端初始化
 int initiate()
@@ -10,6 +13,8 @@ int initiate()
     WORD wVersionRequested = MAKEWORD(2, 2);
 	WSADATA wsaData;
 	int err;
+	memset(avg,0,sizeof(avg));
+	memset(a,0,sizeof(a));
 	err = WSAStartup(wVersionRequested, &wsaData);
 
 	if (err != 0)
@@ -127,7 +132,8 @@ void sendFile(const char* filename)
 		time += t.getDiff();
 	}
 	cout<<"传输文件成功\n";
-	cout << "传输时间:" << time << "ms  平均吞吐率:" << f.size * 8 / time << "kbps\n";
+	trans = time;
+	tt = f.size * 8 / time;
 	fclose(file);
 }
 
@@ -152,6 +158,9 @@ void sendFiles()
 		//cin >> filename;
 		//sendFile(filename.c_str());
 		sendFile(test[i]);
+		cout << "传输时间:" << trans << "ms  平均吞吐率:" << tt << "kbps\n";
+		avg[i] += tt;
+		a[i] += trans;
 	}	
 }
 
@@ -162,6 +171,17 @@ int main()
 		cerr<<"发送端初始化失败\n";
 		exit(1);
 	}
-	sendFiles();
+	for(int i = 0; i < 20; i++)
+		sendFiles();
+	for(int i = 0; i < 4; i++)
+	{
+		cout<<"文件"<<i+1<<"\n";
+		cout<<"平均传输时间:"<<a[i] / 20<<'\n';
+		cout<<"平均吞吐率:"<<avg[i] / 20<<'\n';
+	}
+	double sum;
+	for(int i = 0; i < 4; i++)
+		sum += avg[i];
+	cout<<"总平均吞吐率"<<sum / 80<<"kbps\n";
 	Sleep(INFINITE);
 }

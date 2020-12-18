@@ -102,7 +102,7 @@ void SBuf::ack()
             if(state == 1)                      //慢启动状态
             {
                 cwnd += num;                    //收到1个ack，拥塞窗口加1;
-                if(cwnd >= ssthresh)             //cwnd>=ssthresh,进入拥塞避免阶段
+                if(cwnd >= ssthresh)            //cwnd>=ssthresh,进入拥塞避免阶段
                 {
                     cnt = 0;
                     state = 2;

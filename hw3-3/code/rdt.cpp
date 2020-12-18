@@ -109,7 +109,7 @@ DWORD WINAPI listenThread(LPVOID s)
             sendto(sock, (char*)&ackPkt, sizeof(packet) - MAXBUFSIZE, 0, &from, sizeof(sockaddr));
 
             SOCKET consock = socket(AF_INET, SOCK_DGRAM, 0);
-            RBuf* rb = new RBuf(1024, consock, sock, from);
+            RBuf* rb = new RBuf(65536, consock, sock, from);
             recvBuf[consock] = rb;
 
             consocks[sock]->insert(consock);

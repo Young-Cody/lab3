@@ -36,7 +36,7 @@ private:
     RTO rto;                                //计算下一次RTO
     int cwnd;                               //拥塞窗口
     int state;                              //慢启动阶段:1 拥塞避免阶段:2 快速恢复阶段:3
-    int cnt;
+    int cnt;                                //计数
     int ssthresh;                           //拥塞阈值
     HANDLE mutex;                           //互斥信号量
     HANDLE slots;                           //发送缓冲区剩余大小计数信号量
