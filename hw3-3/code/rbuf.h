@@ -23,6 +23,9 @@ private:
     SOCKET cs;                              //连接socket
     SOCKET s;                               //服务器socket
     sockaddr addr;                          //对方的地址
+    HANDLE mutex;                           //互斥信号量
+    HANDLE slots;                           //缓冲区剩余位置计数信号量
+    HANDLE items;                           //缓冲区按序接收到的数据报数目计数信号量
 };
 
 #endif

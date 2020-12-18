@@ -35,7 +35,7 @@ int initiate()
 	//cout<<"请输入接收端的端口号:";
 	//cin>>port;
 
-	string IP = "127.0.0.1";
+	string IP = "10.130.120.25";
 	unsigned short port = 1234;
 
 	addrRcvr.sin_port = htons(port);

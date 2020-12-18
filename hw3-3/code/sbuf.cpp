@@ -16,8 +16,8 @@ SBuf::SBuf(int n, SOCKET s, const sockaddr* addr)
     memset(buf, 0, sizeof(char*) * n * 2);
     istermi = false;
     rto.DevRTT = 0;
-    rto.EstimatedRTT = 15;
-    rto.rto = 15;
+    rto.EstimatedRTT = 100;
+    rto.rto = 100;
     timer = new Timer[this->n];
     N = n;
     base = nextSeqnum = nextWrite = 1;
@@ -25,13 +25,20 @@ SBuf::SBuf(int n, SOCKET s, const sockaddr* addr)
     cwnd = 1;
     state = 1;
     cnt = 0;
-    ssthresh = 48;
+    ssthresh = 32;
+    mutex = CreateSemaphore(NULL, 1, 1, NULL);
+    slots = CreateSemaphore(NULL, 2 * n, n * 2, NULL);
+    sem_ack = CreateSemaphore(NULL, 0, n, NULL);
 }
 
 SBuf::~SBuf()
 {
+    WaitForSingleObject(mutex, INFINITE);
     delete[]len;
     delete[]buf;
+    CloseHandle(mutex);
+    CloseHandle(slots);
+    CloseHandle(sem_ack);
 }
 /*
     将数据写入发送缓冲区
@@ -40,19 +47,22 @@ SBuf::~SBuf()
 */
 void SBuf::write(const char* buf, int len)
 {
-    while((nextWrite - base) >= n);
+    WaitForSingleObject(slots, INFINITE);
+    WaitForSingleObject(mutex, INFINITE);
     this->buf[nextWrite % n] = new char[len];
     this->len[nextWrite % n] = len;
     for (int i = 0; i < len; i++)
         this->buf[nextWrite % n][i] = buf[i];
     nextWrite++;
+    ReleaseSemaphore(mutex, 1, NULL);
 }
 
 //传输层将应用层数据组装成数据报并发送
 void SBuf::send()
 {
+    WaitForSingleObject(mutex, INFINITE);
     if (nextSeqnum < base + N && nextSeqnum < nextWrite && nextSeqnum < base + cwnd)    //滑动窗口中还有可以发送的数据
-    {                 
+    {   
         timer[nextSeqnum % n].setTimeOut(rto.rto);                         //开始发送时，开启定时器
         timer[nextSeqnum % n].startTimer();
         timer[nextSeqnum % n].flag = true;
@@ -62,7 +72,9 @@ void SBuf::send()
         sendto(s, (char*)&c, 1, 0, &addr, sizeof(sockaddr));
         sendto(s, (char*)&p, len[nextSeqnum % n] + sizeof(packet) - MAXBUFSIZE, 0, &addr, sizeof(sockaddr));
         nextSeqnum++;
+        ReleaseSemaphore(sem_ack, 1, NULL);
     }
+    ReleaseSemaphore(mutex, 1, NULL);
 }
 
 //接受ack数据报
@@ -72,6 +84,7 @@ void SBuf::ack()
     int fromlen = sizeof(sockaddr);
     packet p;
     if(recvfrom(s, (char*)&p, sizeof(packet) - MAXBUFSIZE, 0, &from, &fromlen) < 0) return;
+    WaitForSingleObject(mutex, INFINITE);
     if (check(&p) && isAck(p.flag))
     {
         if(p.ack >= base && p.ack < nextSeqnum)
@@ -83,6 +96,7 @@ void SBuf::ack()
                     rto.addSampleRTT(timer[i % n].getDiff());
                 timer[i % n].stopTimer();
                 delete []buf[i % n];            //删除被确认的数据
+                WaitForSingleObject(sem_ack, INFINITE);     //ack信号量递减
             }
             int num = p.ack - base + 1;
             if(state == 1)                      //慢启动状态
@@ -110,6 +124,7 @@ void SBuf::ack()
                 state = 2;  
             }
             base = p.ack + 1;                   //base = ack + 1
+            ReleaseSemaphore(slots, num, NULL);
         }
         else
         {
@@ -131,45 +146,48 @@ void SBuf::ack()
         }
         
     }
+    ReleaseSemaphore(mutex, 1, NULL);
 }
 
 //超时重传
 void SBuf::retrans()
 {
+    WaitForSingleObject(mutex, INFINITE);
     for (unsigned int i = base; i < nextSeqnum; i++)        //定时器超时，重传[base, nextSeqnum)中的数据
     {
-        bool flag = false;
         if(timer[i % n].isStart && timer[i % n].testTimeOut())
         {
             if(i == base)
-                flag = true;
+            {                                               //进入慢启动阶段
+                dupAckCnt = 0;
+                ssthresh = cwnd / 2;
+                cwnd = 1;
+                state = 1;
+                packet p;
+                makePkt(&p, buf[i % n], len[i % n], i);
+                sendto(s, (char*)&p, len[i % n] + sizeof(packet) - MAXBUFSIZE, 0, &addr, sizeof(sockaddr));
+            }
             timer[i % n].setTimeOut(rto.rto);
             timer[i % n].startTimer();
             timer[i % n].flag = false;
-            packet p;
-            makePkt(&p, buf[i % n], len[i % n], i);
-            sendto(s, (char*)&p, len[i % n] + sizeof(packet) - MAXBUFSIZE, 0, &addr, sizeof(sockaddr));
-        }
-        if(flag)                                            //进入慢启动阶段ma
-        {
-            dupAckCnt = 0;
-            ssthresh = cwnd / 2;
-            cwnd = 1;
-            state = 1;
         }
     }
+    ReleaseSemaphore(mutex, 1, NULL);
 }
 
 bool SBuf::isterminated()
 {
     bool t;
+    WaitForSingleObject(mutex, INFINITE);
     t = istermi;
+    ReleaseSemaphore(mutex, 1, NULL);
     return t;
 }
 
 bool SBuf::close()
 {
     bool flag = true;
+    WaitForSingleObject(mutex, INFINITE);
     if(base == nextWrite)
     {
         istermi = true;
@@ -186,5 +204,6 @@ bool SBuf::close()
             if (check(&ackPkt) && isAck(ackPkt.flag) && ackPkt.ack == nextSeqnum) break;
         }
     }
+    ReleaseSemaphore(mutex, 1, NULL);
     return flag;
 }

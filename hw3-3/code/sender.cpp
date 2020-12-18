@@ -45,7 +45,7 @@ int initiate()
 	//cout<<"请输入接收端的端口号:";
 	//cin>>port;
 	IP = "127.0.0.1";
-	port = 1234;
+	port = 2000;
 	sockaddr_in addrRcvr;
 	addrRcvr.sin_port = htons(port);
 	addrRcvr.sin_family = AF_INET;
@@ -127,7 +127,7 @@ void sendFile(const char* filename)
 		time += t.getDiff();
 	}
 	cout<<"传输文件成功\n";
-	cout << "传输时间:" << time << "ms  平均吞吐率:" << 1000.0 * f.size * 8 / (time * 1024) << "kbps\n";
+	cout << "传输时间:" << time << "ms  平均吞吐率:" << f.size * 8 / time << "kbps\n";
 	fclose(file);
 }
 
