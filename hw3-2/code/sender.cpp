@@ -45,7 +45,7 @@ int initiate()
 	//cout<<"请输入接收端的端口号:";
 	//cin>>port;
 	IP = "127.0.0.1";
-	port = 1234;
+	port = 2000;
 	sockaddr_in addrRcvr;
 	addrRcvr.sin_port = htons(port);
 	addrRcvr.sin_family = AF_INET;
@@ -137,9 +137,10 @@ void sendFiles()
 	int n;
 	//cout<<"请输入要传输的文件数:";
 	//cin>>n;
-	n = 4;
+	n = 1;
 	rdt::send(sockSender, (char*)&n, 4);
-	const char* test[4] = {
+	const char* test[5] = {
+		"..\\test\\a.txt",
 		"..\\test\\1.jpg",
 		"..\\test\\2.jpg",
 		"..\\test\\3.jpg",

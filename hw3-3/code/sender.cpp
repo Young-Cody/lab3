@@ -143,13 +143,14 @@ void sendFiles()
 	int n;
 	//cout<<"请输入要传输的文件数:";
 	//cin>>n;
-	n = 4;
-	rdt::send(sockSender, (char*)&n, 4);
-	const char* test[4] = {
-		"..\\test\\1.jpg",
+	n = 1;
+	rdt::send(sockSender, (char*)&n, 1);
+	const char* test[5] = {
+		"..\\test\\a.txt",
 		"..\\test\\2.jpg",
-		"..\\test\\3.jpg",
-		"..\\test\\helloworld.txt"
+		"..\\test\\1.jpg",
+		"..\\test\\helloworld.txt",
+		"..\\test\\3.jpg"
 	};
 	for (int i = 0; i < n; i++)
 	{
@@ -171,17 +172,15 @@ int main()
 		cerr<<"发送端初始化失败\n";
 		exit(1);
 	}
-	for(int i = 0; i < 20; i++)
 		sendFiles();
-	for(int i = 0; i < 4; i++)
-	{
-		cout<<"文件"<<i+1<<"\n";
-		cout<<"平均传输时间:"<<a[i] / 20<<'\n';
-		cout<<"平均吞吐率:"<<avg[i] / 20<<'\n';
-	}
-	double sum;
-	for(int i = 0; i < 4; i++)
-		sum += avg[i];
-	cout<<"总平均吞吐率"<<sum / 80<<"kbps\n";
+	// double sumt=0;
+	// double suma=0;
+	// for(int i = 0; i < 4; i++)
+	// {
+	// 	sumt+=a[i];
+	// 	suma+=avg[i];
+	// }
+	// cout<<"平均传输时间"<<sumt<<"ms\n";
+	// cout<<"平均吞吐率"<<suma / 4<<"kbps\n";
 	Sleep(INFINITE);
 }

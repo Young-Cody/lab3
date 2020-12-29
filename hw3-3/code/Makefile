@@ -36,6 +36,10 @@ rs:sender
 rr:receiver
 	./receiver.exe
 
+test:
+	./receiver.exe
+	./sender.exe
+
 clean:
 	rm *.exe *.obj
 	
